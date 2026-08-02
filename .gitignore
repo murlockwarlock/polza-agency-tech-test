@@ -1,0 +1,9 @@
+node_modules
+.next
+.env
+.env.local
+coverage
+screenshots/local-*.png
+npm-debug.log*
+*.tsbuildinfo
+.DS_Store
