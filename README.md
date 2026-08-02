@@ -28,7 +28,7 @@ npm run db:verify
 Три запроса из задания находятся в `queries.sql`:
 
 ```bash
-docker-compose exec -T db psql -U polza -d polza --file=/dev/stdin < queries.sql
+sh scripts/dcompose.sh exec -T db psql -U polza -d polza --file=/dev/stdin < queries.sql
 ```
 
 ## Результат импорта
@@ -71,7 +71,7 @@ CI дополнительно поднимает PostgreSQL 17, применяе
 
 ## Как проверял
 
-Поднял чистый PostgreSQL в Docker, применил схему и прогнал обе выгрузки, затем сверил количества в основных, source- и rejection-таблицах. В production-сборке проверил общий список, пагинацию, поиск `Восток` вместе с городом `Москва`, сброс, пустую выдачу и отсутствие alias-городов `Moscow`, `москва`, `Санкат-Петербург` после нормализации. На первом интеграционном прогоне PostgreSQL отклонил корректные телефоны: `\d` в CHECK работал не так, как JavaScript regex, поэтому заменил его на POSIX-совместимый `[0-9]` и повторил импорт. После исправления проверил health endpoint, три SQL-запроса, production Docker image и Safari: на viewport 390×844 заменил horizontal scroll карточками, убрал пустую grid-ячейку и исправил ложный Docker `unhealthy`, задав standalone-серверу явный `0.0.0.0`.
+Поднял чистый PostgreSQL в Docker, применил схему и прогнал обе выгрузки, затем сверил количества в основных, source- и rejection-таблицах. В production-сборке проверил общий список, пагинацию, поиск `Восток` вместе с городом `Москва`, сброс, пустую выдачу и отсутствие alias-городов `Moscow`, `москва`, `Санкат-Петербург` после нормализации. На первом интеграционном прогоне PostgreSQL отклонил корректные телефоны: `\d` в CHECK работал не так, как JavaScript regex, поэтому заменил его на POSIX-совместимый `[0-9]` и повторил импорт. После исправления проверил health endpoint, три SQL-запроса, production Docker image и Safari: на viewport 390×844 заменил horizontal scroll карточками, убрал пустую grid-ячейку и исправил ложный Docker `unhealthy`, задав standalone-серверу явный `0.0.0.0`. Позже сверил `data/raw` с исходным архивом: JSON совпадают с точностью до форматирования, CSV — построчно. Полевой diff шести пар `c_900…` показал, что расходятся только кавычки в названии, поэтому зафиксировал это следствие upsert в `ANOMALIES.md`. Отдельно поймал, что v2-плагин `docker compose` установлен не везде: на машине только со standalone `docker-compose` команда `db:up` падала, поэтому вынес запуск Compose в `scripts/dcompose.sh` с fallback и перепроверил `db:up`, три запроса из `queries.sql` и `db:verify`.
 
 ## Скриншоты
 
