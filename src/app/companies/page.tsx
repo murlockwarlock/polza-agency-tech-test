@@ -92,15 +92,15 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
               <tbody>
                 {companies.map((company) => (
                   <tr key={company.id}>
-                    <td><strong>{company.name}</strong></td>
-                    <td><span className="category">{company.category}</span></td>
-                    <td><strong>{company.city}</strong><small>{company.address}</small></td>
-                    <td>
+                    <td data-label="Компания"><strong>{company.name}</strong></td>
+                    <td data-label="Категория"><span className="category">{company.category}</span></td>
+                    <td data-label="Город и адрес"><strong>{company.city}</strong><small>{company.address}</small></td>
+                    <td data-label="Рейтинг">
                       {company.rating === null
                         ? <span className="muted">Нет оценки</span>
                         : <div className="rating"><b>★ {company.rating.toFixed(1)}</b><small>{company.reviewsCount} отзывов</small></div>}
                     </td>
-                    <td className="contacts">
+                    <td className="contacts" data-label="Контакты">
                       {company.site && <a href={company.site} target="_blank" rel="noreferrer">Открыть сайт ↗</a>}
                       {company.phone && <a href={`tel:${company.phone.replace(/\D/g, "")}`}>{company.phone}</a>}
                       {!company.site && !company.phone && <span className="muted">Не указаны</span>}
