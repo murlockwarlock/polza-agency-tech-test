@@ -35,9 +35,19 @@ export type PreparedImport = {
 const companyFields = ["id", "name", "category", "city", "address", "rating", "reviews_count", "site", "phone"] as const;
 const phonePattern = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
 const mojibakePattern = /Р[ЂЃ‚ѓ„…†‡€‰Љ‹ЊЌЋЏђѓќћџ°±²µ¶·»—]|С[ЂЃ‚ѓ„…†‡€‰Љ‹ЊЌЋЏђѓќћџ]|В[«»]/u;
+const cityAliases = new Map([
+  ["moscow", "Москва"],
+  ["москва", "Москва"],
+  ["санкат-петербург", "Санкт-Петербург"],
+]);
 
 function normalizeText(value: unknown): string {
   return typeof value === "string" ? value.normalize("NFKC").trim().replace(/\s+/g, " ") : "";
+}
+
+export function normalizeCity(value: string): string {
+  const normalized = normalizeText(value);
+  return cityAliases.get(normalized.toLocaleLowerCase("ru-RU")) ?? normalized;
 }
 
 function identityPart(value: string): string {
@@ -110,7 +120,7 @@ export function validateCompany(payload: unknown): { value?: Company; errors: st
   const sourceId = normalizeText(raw.id);
   const name = normalizeText(raw.name);
   const category = normalizeText(raw.category);
-  const city = normalizeText(raw.city);
+  const city = normalizeCity(normalizeText(raw.city));
   const address = normalizeText(raw.address);
 
   if (!/^c_\d{6}$/.test(sourceId)) errors.push("id должен соответствовать c_000000");

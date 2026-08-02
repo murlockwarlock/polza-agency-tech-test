@@ -140,6 +140,14 @@ export async function saveImport(options: ImportOptions, prepared: PreparedImpor
 
     await insertCompanies(client, prepared.companies);
     await insertSourceRecords(client, options.sourceKind, prepared.sourceRecords);
+    await client.query(`
+      DELETE FROM companies AS company
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM company_source_records AS source_record
+        WHERE source_record.company_id = company.id
+      )
+    `);
 
     if (prepared.rejections.length) {
       await client.query(

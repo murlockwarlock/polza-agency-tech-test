@@ -10,6 +10,8 @@ shared_dir="$install_root/shared"
 nginx_available="/etc/nginx/sites-available/polza-agency-tech-test"
 nginx_enabled="/etc/nginx/sites-enabled/polza-agency-tech-test"
 nginx_backup="$shared_dir/nginx.backup"
+relay_config="/etc/nginx/stream.d/relay.conf"
+relay_backup="$shared_dir/relay.conf.backup"
 compose=(docker compose --project-name polza-agency-tech-test --env-file "$shared_dir/.env" --file "$repository_dir/compose.production.yml")
 
 rollback_nginx() {
@@ -17,6 +19,9 @@ rollback_nginx() {
     cp "$nginx_backup" "$nginx_available"
   else
     rm -f "$nginx_available" "$nginx_enabled"
+  fi
+  if [[ -f "$relay_backup" ]]; then
+    cp "$relay_backup" "$relay_config"
   fi
   nginx -t >/dev/null 2>&1 && systemctl reload nginx || true
 }
@@ -51,6 +56,11 @@ if ss -ltnH 'sport = :3100' | grep -q . && ! docker ps --format '{{.Names}}' | g
   exit 1
 fi
 
+if ss -ltnH 'sport = :8447' | grep -q . && ! grep -qF 'test.loonapie.xyz 127.0.0.1:8447;' "$relay_config"; then
+  printf 'Port 8447 is already occupied\n' >&2
+  exit 1
+fi
+
 "${compose[@]}" up --detach --build --remove-orphans
 
 for attempt in {1..30}; do
@@ -70,6 +80,7 @@ if [[ -f "$nginx_available" ]]; then
 else
   rm -f "$nginx_backup"
 fi
+cp "$relay_config" "$relay_backup"
 
 trap rollback_nginx ERR
 cp "$repository_dir/ops/nginx-http.conf" "$nginx_available"
@@ -88,6 +99,9 @@ if [[ ! -f "/etc/letsencrypt/live/$domain/fullchain.pem" ]]; then
 fi
 
 cp "$repository_dir/ops/nginx-https.conf" "$nginx_available"
+if ! grep -qF 'test.loonapie.xyz 127.0.0.1:8447;' "$relay_config"; then
+  sed -i '/^[[:space:]]*default[[:space:]]/i\    test.loonapie.xyz 127.0.0.1:8447;' "$relay_config"
+fi
 nginx -t
 systemctl reload nginx
 

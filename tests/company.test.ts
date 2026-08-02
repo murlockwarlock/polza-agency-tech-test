@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeIdentityKey, prepareImport, validateCompany } from "../src/lib/company";
+import { makeIdentityKey, normalizeCity, prepareImport, validateCompany } from "../src/lib/company";
 
 const validCompany = {
   id: "c_000001",
@@ -76,5 +76,17 @@ describe("deduplication", () => {
 
     expect(prepared.sourceRecords).toHaveLength(1);
     expect(prepared.rejections[0].errors.join(" ")).toContain("повторяется с другими данными");
+  });
+});
+
+describe("normalizeCity", () => {
+  it.each([
+    ["Moscow", "Москва"],
+    ["москва", "Москва"],
+    ["Санкат-Петербург", "Санкт-Петербург"],
+    ["  Москва  ", "Москва"],
+    ["Калуга", "Калуга"],
+  ])("normalizes %s", (source, expected) => {
+    expect(normalizeCity(source)).toBe(expected);
   });
 });
